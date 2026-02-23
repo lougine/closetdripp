@@ -10,7 +10,7 @@ import { Image, SafeAreaView, StyleSheet } from 'react-native';
 
 export default function TabTwoScreen() {
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
+    <SafeAreaView style={styles.safe}>
         <StatusBar style="light" translucent />
       <ParallaxScrollView
         headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
