@@ -1,25 +1,92 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Tabs, useRouter } from 'expo-router';
-import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useRef, useState } from 'react';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-function CustomTabBarButton({ children, onPress }: any) {
+function ActionButton({ label, onPress, icon, iconColor }: any) {
   return (
-    <TouchableOpacity
-      style={styles.customButtonContainer}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View style={styles.customButton}>
-        {children}
-      </View>
+    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+      {icon && <IconSymbol name={icon} size={20} color={iconColor || "#B8576A"} style={{ marginRight: 10, right: 5 }} />}
+      <Text style={styles.actionText}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-export default function TabLayout() {
+function ExpandableFAB() {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const animation = useRef(new Animated.Value(0)).current;
 
+  const toggleMenu = () => {
+    Animated.spring(animation, {
+    toValue: open ? 0 : 1,
+    useNativeDriver: true,
+  }).start();
+  setOpen(!open);
+};
+const createAnimation = (distance: number) => ({
+  transform: [
+    {
+      translateY: animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -distance],
+      }),
+    },
+  ],
+  opacity: animation,
+});
+
+  const navigateAndClose = (route: string) => {
+    toggleMenu();
+    setTimeout(() => {
+      return router.push(route as any);
+    }, 200);
+  };
+
+  return (
+    <View style={styles.floatingContainer}>
+      
+      {open && (
+  <>
+  <Animated.View style={[styles.actionWrapper, createAnimation(250)]}>
+     <ActionButton label="Add items" icon="plus" onPress={() => navigateAndClose("/add-item")} />
+   </Animated.View>
+
+   <Animated.View style={[styles.actionWrapper, createAnimation(190)]}>
+     <ActionButton label="Create outfit" icon="hanger" onPress={() => navigateAndClose("/outfit")} />
+   </Animated.View> 
+
+   <Animated.View style={[styles.actionWrapper, createAnimation(130)]}>
+     <ActionButton label="Create lookbook" icon="book" onPress={() => navigateAndClose("/lookbook")} />
+    </Animated.View>
+
+    <Animated.View style={[styles.actionWrapper, createAnimation(70)]}>
+      <ActionButton label="Premium Features" icon="sparkles" onPress={() => navigateAndClose("/premium")} />
+    </Animated.View>
+  </>
+)}
+      {/* Main FAB */}
+      <TouchableOpacity
+        style={[
+          styles.floatingButton,
+          { backgroundColor: open ? "#000000" : "#FF4F81" },
+        ]}
+        onPress={toggleMenu}
+        activeOpacity={0.9}
+      >
+      <Image source={ open
+      ? require("../../assets/images/hanger.png")
+      : require("../../assets/images/hanger.png")
+       }
+       style={styles.fabIcon}
+       
+      />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+export default function TabLayout() {
   return (
     <>
       <Tabs
@@ -33,7 +100,8 @@ export default function TabLayout() {
             right: 20,
             backgroundColor: "#1E1E1E",
             borderRadius: 25,
-            height: 75,
+            height: 58,
+            borderColor: 'transparent',
           },
         }}
       >
@@ -43,11 +111,11 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
         <Image source={require("../../assets/images/Community.png")}
         style={{
-          width: 50,
-          height: 50,
+          width: 40,
+          height: 40,
           tintColor: focused ? "#F0507B" : "#ffffff",
           position: "relative", 
-          top:20,
+          top:12,
         }}
         resizeMode="contain"
       />
@@ -60,11 +128,11 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
         <Image source={require("../../assets/images/calender.png")}
         style={{
-          width: 37,
-          height: 37,
+          width: 30,
+          height: 30,
           tintColor: focused ? "#F0507B" : "#ffffff",
           position: "relative", 
-          top:20,
+          top:12,
           right: 20,
         }}
         resizeMode="contain"
@@ -78,11 +146,11 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
         <Image source={require("../../assets/images/styling.png")}
         style={{
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
           tintColor: focused ? "#F0507B" : "#ffffff",
           position: "relative", 
-          top:20,
+          top:12,
           left: 20,
         }}
         resizeMode="contain"
@@ -96,11 +164,11 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
         <Image source={require("../../assets/images/waredrobe.png")}
         style={{
-          width: 50,
-          height: 50,
+          width: 40,
+          height: 40,
           tintColor: focused ? "#F0507B" : "#ffffff",
           position: "relative", 
-          top:20,
+          top:12,
         }}
         resizeMode="contain"
       />
@@ -108,16 +176,7 @@ export default function TabLayout() {
   }}
 />
       </Tabs>
-
-      {/* Floating Modal Button */}
-      <View style={styles.floatingContainer}>
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => router.push("/modal")}
-        >
-          <IconSymbol size={30} name="plus" color="white" />
-        </TouchableOpacity>
-      </View>
+      <ExpandableFAB />
     </>
   );
 }
@@ -125,31 +184,50 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   floatingContainer: {
     position: "absolute",
-    bottom: 35,
+    bottom: 45,
+    alignSelf: "center",
+    alignItems: "center",
+  },
+  actionWrapper: {
+    position: "absolute",
+    zIndex: 100,
+  },
+  actionButton: {
+    backgroundColor: "#FEC4DD",
+    paddingHorizontal: 25,
+    width: 200,
+    height: 40,
+    paddingVertical: 12,
+    borderRadius: 55,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
     alignSelf: "center",
   },
+  actionText: {
+    color: "#000",
+    fontWeight: "500",
+    alignSelf: "center",
+    bottom: 20,
+  },
   floatingButton: {
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    backgroundColor: "#FF4F81",
+    width: 60,
+    height: 60,
+    borderRadius: 32.5,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    position: "relative",
-    bottom:20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
   },
-  customButton: {
-    backgroundColor: "#1E1E1E",
-    borderRadius: 20,
-    padding: 10,
-  },
-  customButtonContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  fabIcon: {
+  width: 37,
+  height: 37,
+  resizeMode: "contain",
+  bottom: 5,
+},
 });
